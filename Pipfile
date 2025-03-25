@@ -1,0 +1,23 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+openai = "*"
+anthropic = "*"
+google-generativeai = "*"
+tenacity = "*"
+scikit-learn = "*"
+numpy = "*"
+gurobipy = "*"
+pandas = "*"
+inflect = "*"
+matplotlib = "*"
+seaborn = "*"
+scipy = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.12"

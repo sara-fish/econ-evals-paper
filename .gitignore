@@ -1,0 +1,8 @@
+Econ_Evals.egg-info*/
+.venv/
+*__pycache__/
+*.pyc
+.ruff_cache/
+**/temp/
+.vscode/
+.DS_Store
