@@ -37,6 +37,8 @@ Each litmus test consists of a synthetically generated environment that tests an
 
 We use Python 3.12. 
 
+**Step 0.** Set up your own virtual environment, if applicable. 
+
 **Step 1.** Install repo as package
 ```
 pip install -e .
