@@ -106,6 +106,8 @@ Example running a single experimental run:
 python3 econ_evals/experiments/procurement/run_procurement_batch.py --model gpt-4o-2024-11-20 --difficulty Basic --seeds 0
 ```
 
+*Note: On some systems, instance generation may throw an `AssertionError` at the start of the run. Restarting the job fixes the problem. We're working on a fix.*
+
 Replicate results from paper at difficulty `Basic`: 
 ```
 python3 econ_evals/experiments/procurement/run_procurement_batch.py --model gpt-4o-2024-11-20 --difficulty Basic --seeds 0 1 2 3 4 5 6 7 8 9 10 11
