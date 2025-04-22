@@ -37,6 +37,8 @@ Each litmus test consists of a synthetically generated environment that tests an
 
 We use Python 3.12. 
 
+**Step 0.** Set up your own virtual environment, if applicable. 
+
 **Step 1.** Install repo as package
 ```
 pip install -e .
@@ -104,6 +106,8 @@ Example running a single experimental run:
 python3 econ_evals/experiments/procurement/run_procurement_batch.py --model gpt-4o-2024-11-20 --difficulty Basic --seeds 0
 ```
 
+*Note: On some systems, instance generation may throw an `AssertionError` at the start of the run. Restarting the job fixes the problem. We're working on a fix.*
+
 Replicate results from paper at difficulty `Basic`: 
 ```
 python3 econ_evals/experiments/procurement/run_procurement_batch.py --model gpt-4o-2024-11-20 --difficulty Basic --seeds 0 1 2 3 4 5 6 7 8 9 10 11
@@ -130,7 +134,7 @@ python3 econ_evals/experiments/scheduling/run_scheduling_batch.py  --model gpt-4
 Replicate results from paper at difficulty `Basic`: 
 ```
 python3 econ_evals/experiments/scheduling/run_scheduling_batch.py --model gpt-4o-2024-11-20 --difficulty Basic --seeds 0 1 2 3 4 5 6 7 8 9 10 11
-python3 econ_evals/experiments/procurschedulingement/run_scheduling_batch.py --model gemini-1.5-pro-002 --difficulty Basic --seeds 0 1 2 3 4 5 6 7 8 9 10 11
+python3 econ_evals/experiments/scheduling/run_scheduling_batch.py --model gemini-1.5-pro-002 --difficulty Basic --seeds 0 1 2 3 4 5 6 7 8 9 10 11
 python3 econ_evals/experiments/scheduling/run_scheduling_batch.py --model claude-3-5-sonnet-20241022 --difficulty Basic --seeds 0 1 2 3 4 5 6 7 8 9 10 11
 ```
 

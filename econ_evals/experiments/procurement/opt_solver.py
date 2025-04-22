@@ -1,6 +1,7 @@
 from typing import Literal, Optional
 from pydantic import BaseModel, model_validator
 import math
+from math import isclose
 import gurobipy as gp
 import inflect
 
@@ -198,8 +199,8 @@ def evaluate_alloc(
 
     if agg_type == "prod":
         assert (
-            sum(group_weights) == 1
-        )  # maybe replace with more floating point robust thing?
+            isclose(sum(group_weights), 1)
+        )
 
     # Check that the items in menu match the item_groups, and also that alloc is subset of these
     menu_items = menu.get_items()
