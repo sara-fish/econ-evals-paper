@@ -204,7 +204,9 @@ class SchedulingAgent:
         else:
             prompt_type = self.prompt_type
 
-        initial_prompt, system, tools, reply_prompt = get_prompts(prompt_type)
+        initial_prompt, system, tools, tools_action_only, reply_prompt = get_prompts(
+            prompt_type
+        )
 
         self.data_accessed_this_period = False
 
@@ -223,7 +225,9 @@ class SchedulingAgent:
             log, response, completion = call_llm(
                 model=self.model,
                 system=system,
-                tools=tools,
+                tools=(
+                    tools if i != max_queries - 1 else tools_action_only
+                ),  # For final attempt, require taking an action
                 messages=messages,
                 tool_choice={"type": "any"},
                 temperature=self.temperature,
@@ -466,8 +470,10 @@ class SchedulingArgs(BaseModel):
     num_attempts: int = Field(
         default=20,
     )
-    prompt_type: Literal["v1"] = Field(default="v1")
-    final_prompt_type: Literal["final_attempt_v1"] = Field(default="final_attempt_v1")
+    prompt_type: Literal["v1", "v1_reasoning"] = Field(default="v1")
+    final_prompt_type: Literal["final_attempt_v1", "final_attempt_v1_reasoning"] = (
+        Field(default="final_attempt_v1")
+    )
     num_workers: int
     num_blocking_pairs: int = Field(default=1)
     score_gap_worker: float | None = Field(

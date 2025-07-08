@@ -90,7 +90,7 @@ if __name__ == "__main__":
     print(
         f"Staged to run {num_attempts} attempts at difficulty {difficulty} using {model}, seeds ={seeds_str}"
     )
-    log_subdirname = f"{get_time_string()}__{difficulty}__{model}_{seeds_str}"
+    log_subdirname = f"{get_time_string()}__{difficulty}__{model}__{seeds_str}"
     difficulty_params = difficulty_to_params[difficulty]
     for seed in tqdm(seeds):
         args = ProcurementArgs(

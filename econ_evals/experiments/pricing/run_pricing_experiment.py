@@ -218,7 +218,9 @@ class PricingAgent:
         """
 
         self.data_accessed_this_period = False
-        system, initial_prompt, tools, reply_prompt = get_prompts(self.prompt_type)
+        system, initial_prompt, tools, tools_action_only, reply_prompt = get_prompts(
+            self.prompt_type
+        )
         attempt_num = len(prices_list)
         initial_prompt = initial_prompt.format(
             upper_bound_price=self.upper_bound_list[attempt_num]
@@ -236,7 +238,7 @@ class PricingAgent:
             log, response, completion = call_llm(
                 model=self.model,
                 system=system,
-                tools=tools,
+                tools=tools if i != max_queries - 1 else tools_action_only,
                 messages=messages,
                 tool_choice={"type": "any"},
                 temperature=self.temperature,

@@ -157,12 +157,13 @@ TOOLS_V1_O3 = [
 ]
 
 
-def get_prompts(prompt_type: str) -> tuple[str, str, list[dict], str]:
+def get_prompts(prompt_type: str) -> tuple[str, str, list[dict], list[dict], str]:
     if prompt_type == "v1":
         return (
             INITIAL_PROMPT_V1,
             SYSTEM_PROMPT_V1,
             TOOLS_V1,
+            [TOOLS_V1[-1]],
             PROMPT_V1,
         )
     elif prompt_type == "v1_o3":
@@ -170,6 +171,7 @@ def get_prompts(prompt_type: str) -> tuple[str, str, list[dict], str]:
             INITIAL_PROMPT_V1,
             SYSTEM_PROMPT_V1_O3,
             TOOLS_V1_O3,
+            [TOOLS_V1[-1]],
             PROMPT_V1,
         )
     elif prompt_type == "v1_known_horizon":
@@ -177,6 +179,7 @@ def get_prompts(prompt_type: str) -> tuple[str, str, list[dict], str]:
             INITIAL_PROMPT_V1,
             SYSTEM_PROMPT_V1_KNOWN_HORIZON,
             TOOLS_V1,
+            [TOOLS_V1[-1]],
             PROMPT_V1,
         )
     elif prompt_type == "v1_graded_best":
@@ -184,6 +187,7 @@ def get_prompts(prompt_type: str) -> tuple[str, str, list[dict], str]:
             INITIAL_PROMPT_V1,
             SYSTEM_PROMPT_V1_GRADED_BEST,
             TOOLS_V1,
+            [TOOLS_V1[-1]],
             PROMPT_V1,
         )
     else:

@@ -30,6 +30,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=str, choices=ALL_MODELS, required=True)
     parser.add_argument(
+        "--prompt_type", type=str, default="v1", choices=["v1", "v1_reasoning"]
+    )
+    parser.add_argument(
         "--difficulty", type=str, choices=["Basic", "Medium", "Hard"], required=True
     )
     parser.add_argument("--seeds", type=int, nargs="+", default=[], required=True)
@@ -72,6 +75,7 @@ if __name__ == "__main__":
 
         args = generate_instance(
             num_attempts=num_periods,
+            prompt_type=args.prompt_type,
             seed=seed,
             model=model,
             env_type=env_type,
@@ -97,8 +101,4 @@ if __name__ == "__main__":
     sub_dirname = f"{get_time_string()}__pricing__{model}__{seeds_str}__{difficulty}"
 
     for args in tqdm(args_to_run, desc="Run"):
-        print("Running pricing experiment with args:")
-        for key, value in vars(args).items():
-            print(f"{key}: {value}")
-
         run(args, difficulty=difficulty, log_subdirname=sub_dirname)

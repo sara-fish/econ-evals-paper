@@ -45,6 +45,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=str, choices=ALL_MODELS, required=True)
     parser.add_argument(
+        "--prompt_type",
+        type=str,
+        required=True,
+        choices=["v1", "v1_reasoning"],
+        help="v1 is the default, v1_reasoning is for reasoning models if it's better for the prompt to not mention reasoning.",
+    )
+    parser.add_argument(
         "--difficulty", type=str, choices=["Basic", "Medium", "Hard"], required=True
     )
     parser.add_argument("--seeds", type=int, nargs="+", default=[], required=True)
@@ -53,8 +60,8 @@ if __name__ == "__main__":
     # Global params same for all runs
     model = args.model
     num_attempts = 100  # num periods
-    prompt_type = "v1"
-    final_prompt_type = "final_attempt_v1"
+    prompt_type = args.prompt_type
+    final_prompt_type = f"final_attempt_{prompt_type}"
     blocking_pair_selection_method = "random_cache"
     verbose = False
     difficulty = args.difficulty
@@ -106,6 +113,7 @@ if __name__ == "__main__":
 
     # Now, run the experiments
     print(f"Staged to run of {num_attempts} periods at {difficulty} {model}")
-    log_subdirname = f"{get_time_string()}__{difficulty}__{model}"
+    seeds_str = "_".join([str(seed) for seed in seeds])
+    log_subdirname = f"{get_time_string()}__{difficulty}__{model}__{seeds_str}"
     for args in tqdm(args_list):
         run(args, log_subdirname=log_subdirname)

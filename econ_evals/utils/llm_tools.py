@@ -31,18 +31,33 @@ ANTHROPIC_MODELS = [
 OPENAI_GPT_MODELS = [
     "gpt-4o-2024-11-20",
     "gpt-4o-mini-2024-07-18",
+    "gpt-4.1-2025-04-14",
 ]
 
-OPENAI_O1_MODELS = ["o1-2024-12-17", "o3-mini-2025-01-31"]
+OPENAI_O1_MODELS = [
+    "o1-2024-12-17",
+    "o3-mini-2025-01-31",
+    "o4-mini-2025-04-16",
+    "o3-2025-04-16",
+]
 
 OPENAI_MODELS = OPENAI_GPT_MODELS + OPENAI_O1_MODELS
 
-GOOGLE_MODELS = [
+GOOGLE_REASONING_MODELS = [
+    "gemini-2.5-pro-preview-06-05",
+]
+
+GOOGLE_NON_REASONING_MODELS = [
     "gemini-1.5-flash-002",
     "gemini-1.5-pro-002",
 ]
 
+GOOGLE_MODELS = GOOGLE_REASONING_MODELS + GOOGLE_NON_REASONING_MODELS
+
 ALL_MODELS = ANTHROPIC_MODELS + OPENAI_MODELS + GOOGLE_MODELS
+
+MAX_TOKENS = 4096
+MAX_REASONING_TOKENS = 100000
 
 
 def get_system_name(model: str) -> Literal["system", "developer", "user"]:
@@ -450,9 +465,6 @@ def cache_anthropic_messages(messages: list[dict[str, str]]):
 @retry(
     stop=stop_after_attempt(MAX_RETRY_ATTEMPTS),
     wait=wait_random_exponential(),
-    retry=retry_if_not_exception_type(
-        openai.BadRequestError
-    ),  # this means too many tokens
 )
 def call_openai(
     *,
@@ -460,8 +472,8 @@ def call_openai(
     messages: dict[str, str],
     system: str = "",
     temperature: float = 0,
-    max_tokens: int = 4096,
-    max_completion_tokens: int = 100000,
+    max_tokens: int = MAX_TOKENS,
+    max_completion_tokens: int = MAX_REASONING_TOKENS,
     tools: list[dict[str, Any]] = None,
     tool_choice: dict | None = None,
 ) -> tuple[dict[str, Any], str, dict[str, Any]]:
@@ -532,7 +544,7 @@ def call_anthropic(
     messages: dict[str, str],
     system: str = "",
     temperature: float = 0,
-    max_tokens: int = 4096,
+    max_tokens: int = MAX_TOKENS,
     tools: list[dict[str, Any]] = None,
     tool_choice: dict | None = None,
 ) -> tuple[dict[str, Any], str, dict[str, Any]]:
@@ -596,7 +608,7 @@ def call_google(
     model: str,
     system: str = "",
     temperature: float = 0,
-    max_tokens: int = 4096,
+    max_tokens: int = MAX_TOKENS,
     tools: list[dict[str, Any]] = None,
     tool_choice: dict | None = None,
 ) -> tuple[dict[str, Any], str, dict[str, Any]]:
@@ -606,6 +618,9 @@ def call_google(
     ), "If tool_choice is specified, must also provide tools"
     tool_args = {"tools": tools} if tools else {}
     tool_choice_args = {"tool_config": tool_choice} if tool_choice else {}
+    max_output_tokens = (
+        max_tokens if model in GOOGLE_NON_REASONING_MODELS else MAX_REASONING_TOKENS
+    )
     google_model = _get_google_client(
         model_name=model,
         system=system,
@@ -614,7 +629,10 @@ def call_google(
         contents=messages,
         **tool_args,
         **tool_choice_args,
-        generation_config={"temperature": temperature, "max_output_tokens": max_tokens},
+        generation_config={
+            "temperature": temperature,
+            "max_output_tokens": max_output_tokens,
+        },
     ).to_dict()
     assert "candidates" in completion
     assert len(completion["candidates"]) == 1
@@ -641,7 +659,7 @@ def call_google(
         "tool_choice": tool_choice,
         "messages": messages,
         "temperature": temperature,
-        "max_tokens": max_tokens,
+        "max_tokens": max_output_tokens,
         "response": response,
         "completion": completion,
     }
@@ -655,7 +673,7 @@ def call_llm(
     messages: dict[str, str],
     system: str = "",
     temperature: float = 0,
-    max_tokens: int = 4096,
+    max_tokens: int = MAX_TOKENS,
     tools: list[dict[str, Any]] = None,
     tool_choice: dict | None = None,
     caching: bool = True,

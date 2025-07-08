@@ -4,13 +4,6 @@ from pydantic import BaseModel
 from enum import Enum
 
 
-ENV_TYPE_TO_PROMPT_TYPE = {
-    "constant": "v1",
-    "linear_shifts": "v1",
-    "periodic_shifts": "v1",
-}
-
-
 class EnvType(Enum):
     CONSTANT = "constant"
     LINEAR_SHIFTS = "linear_shifts"
@@ -144,6 +137,7 @@ def generate_multiplier_list(
 
 def generate_instance(
     num_attempts: int,
+    prompt_type: str,
     seed: int,
     model: str,
     env_type: EnvType,
@@ -161,8 +155,6 @@ def generate_instance(
     period_length: int,
     my_random: np.random.RandomState,
 ) -> PricingArgs:
-    prompt_type = ENV_TYPE_TO_PROMPT_TYPE[env_type]
-
     group_idxs = generate_group_idxs(
         num_products=num_products,
         my_random=my_random,

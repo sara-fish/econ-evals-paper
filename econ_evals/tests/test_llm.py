@@ -162,6 +162,7 @@ class TestLLMMethods(unittest.TestCase):
             "claude-3-5-haiku-20241022",
             "gpt-4o-mini-2024-07-18",
             "gemini-1.5-flash-002",
+            "gemini-2.5-pro-preview-06-05",
         ]:
             _, response, _ = call_llm(
                 model=model,
@@ -179,6 +180,7 @@ class TestLLMMethods(unittest.TestCase):
             "claude-3-5-haiku-20241022",
             "gpt-4o-mini-2024-07-18",
             "gemini-1.5-flash-002",
+            "gemini-2.5-pro-preview-06-05",
         ]:
             tools = [
                 {

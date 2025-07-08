@@ -263,7 +263,9 @@ class PricingAgent:
     ) -> float:
         self.data_accessed_this_period = False  # reset flag at start of conversation
 
-        system, initial_prompt, tools, reply_prompt = get_prompts(self.prompt_type)
+        system, initial_prompt, tools, tools_action_only, reply_prompt = get_prompts(
+            self.prompt_type
+        )
 
         initial_prompt = initial_prompt.format(upper_bound_price=self.upper_bound_price)
 
@@ -282,7 +284,9 @@ class PricingAgent:
                 model=self.model,
                 system=system,
                 messages=messages,
-                tools=tools,
+                tools=(
+                    tools if i != MAX_LLM_QUERIES_PER_PERIOD - 1 else tools_action_only
+                ),
                 tool_choice={"type": "any"},  # force to use 1 of provided tools
                 temperature=self.temperature,
                 caching=True,  # for Anthropic

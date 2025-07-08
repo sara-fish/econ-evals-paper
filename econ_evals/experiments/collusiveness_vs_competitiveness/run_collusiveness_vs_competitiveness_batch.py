@@ -17,7 +17,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--prompt_type",
         type=str,
-        choices=["monopoly_v1", "collusion_v1"],
+        choices=[
+            "monopoly_v1",
+            "collusion_v1",
+            "collusion_v1_reasoning",
+            "monopoly_v1_reasoning",
+        ],
         required=True,
     )
     parser.add_argument("--seeds", type=int, nargs="+", default=[], required=True)
@@ -28,9 +33,9 @@ if __name__ == "__main__":
     seeds = args.seeds
 
     num_periods = 300
-    if prompt_type == "monopoly_v1":
+    if prompt_type == "monopoly_v1" or prompt_type == "monopoly_v1_reasoning":
         num_agents = 1
-    elif prompt_type == "collusion_v1":
+    elif prompt_type == "collusion_v1" or prompt_type == "collusion_v1_reasoning":
         num_agents = 2
     else:
         raise NotImplementedError(f"Prompt type {prompt_type} not implemented")

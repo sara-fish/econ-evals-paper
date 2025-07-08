@@ -83,6 +83,7 @@ class TestPricingLinearShiftsMonotonicity(unittest.TestCase):
 
                 args = generate_instance(
                     num_attempts=num_attempts,
+                    prompt_type="v1",
                     seed=seed,
                     model=model,
                     env_type=env_type,

@@ -186,24 +186,27 @@ def calc_discount_rate_LLM_choice(
             pd.DataFrame(
                 [{"model": model, "value": value, "preferred_100_count": answers}]
             ).to_csv(high_level_results_path, mode="a", header=False, index=False)
-    return
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "--model",
+        type=str,
+        required=True,
+    )
+    parser.add_argument(
         "--time_horizon",
         type=str,
         choices=["one_year", "one_month", "six_months", "five_years"],
+        required=True,
     )
     args = parser.parse_args()
 
-    dir_name, num_trials = calc_discount_rate_LLM_choice(
+    calc_discount_rate_LLM_choice(
         args.time_horizon,
         [
-            "gemini-1.5-pro-002",
-            "gpt-4o-2024-11-20",
-            "claude-3-5-sonnet-20241022",
+            args.model,
         ],
         1.0,
         10,

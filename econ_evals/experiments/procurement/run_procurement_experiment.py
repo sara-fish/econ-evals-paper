@@ -232,7 +232,9 @@ class ProcurementAgent:
         self.data_accessed_this_period = False
         self.menu_accessed_this_period = False
 
-        initial_prompt, system, tools, reply_prompt = get_prompts(self.prompt_type)
+        initial_prompt, system, tools, tools_action_only, reply_prompt = get_prompts(
+            self.prompt_type
+        )
 
         attempt_num = len(alloc_attempts)
 
@@ -249,7 +251,7 @@ class ProcurementAgent:
             log, response, completion = call_llm(
                 model=self.model,
                 system=system,
-                tools=tools,
+                tools=tools if i != max_queries - 1 else tools_action_only,
                 messages=messages,
                 tool_choice={"type": "any"},
                 temperature=self.temperature,

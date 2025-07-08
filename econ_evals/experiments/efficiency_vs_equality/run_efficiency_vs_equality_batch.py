@@ -16,7 +16,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--prompt_type",
         type=str,
-        choices=["main", "efficiency", "equality"],
+        choices=[
+            "main",
+            "efficiency",
+            "equality",
+            "main_reasoning",
+            "efficiency_reasoning",
+            "equality_reasoning",
+        ],
         required=True,
     )
     parser.add_argument("--seeds", type=int, nargs="+", default=[], required=True)
