@@ -43,6 +43,8 @@ LOG_COLS = [
     "utility",
     "is_feasible",
     "infeasible_reason",
+    "request_timestamp",
+    "response_timestamp",
 ]
 
 

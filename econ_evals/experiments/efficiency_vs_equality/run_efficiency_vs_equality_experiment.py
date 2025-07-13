@@ -59,6 +59,8 @@ LOG_COLS = [
     "worker_to_company_revenue",
     "worker_inequality",
     "status",
+    "request_timestamp",
+    "response_timestamp",
 ]
 
 DATA_COLS = [

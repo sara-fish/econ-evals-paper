@@ -46,6 +46,8 @@ LOG_COLS = [
     "matching",
     "blocking_pairs",
     "blocking_pair",
+    "request_timestamp",
+    "response_timestamp",
 ]
 
 

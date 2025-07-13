@@ -47,6 +47,8 @@ LOG_COLS = [
     "profits",
     "total profits",
     "costs",
+    "request_timestamp",
+    "response_timestamp",
 ]
 
 

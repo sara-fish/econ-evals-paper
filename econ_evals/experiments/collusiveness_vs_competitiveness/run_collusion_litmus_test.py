@@ -57,6 +57,8 @@ LOG_COLS = [
     "prices",
     "quantities",
     "profits",
+    "request_timestamp",
+    "response_timestamp",
 ]
 
 
