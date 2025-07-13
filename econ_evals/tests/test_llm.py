@@ -10,6 +10,19 @@ from econ_evals.utils.llm_tools import (
 
 
 class TestLLMMethods(unittest.TestCase):
+    def test_call_xai_grok4(self):
+        # Simple test for XAI grok-4-0709 model
+        messages = [{"role": "user", "content": "What is 2+2"}]
+        _, response, _ = call_openai(
+            model="grok-4-0709",
+            messages=messages,
+            system="Respond just with the number",
+            temperature=0,
+            tools=None,
+            tool_choice=None,
+        )
+        self.assertTrue("4" in response)
+
     def test_call_openai(self):
         messages = [{"role": "user", "content": "What is 2+2"}]
         _, response, _ = call_openai(
@@ -163,6 +176,7 @@ class TestLLMMethods(unittest.TestCase):
             "gpt-4o-mini-2024-07-18",
             "gemini-1.5-flash-002",
             "gemini-2.5-pro-preview-06-05",
+            "grok-4-0709",
         ]:
             _, response, _ = call_llm(
                 model=model,
@@ -172,7 +186,6 @@ class TestLLMMethods(unittest.TestCase):
                 tools=None,
                 tool_choice=None,
             )
-
             self.assertTrue("4" in response)
 
     def test_call_llm_tools(self):

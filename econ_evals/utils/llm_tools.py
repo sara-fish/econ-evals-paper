@@ -1,3 +1,5 @@
+from datetime import datetime
+import time
 from ast import literal_eval
 import os
 
@@ -15,12 +17,21 @@ from tenacity import (
     retry_if_not_exception_type,
     stop_after_attempt,
     wait_random_exponential,
+    before_sleep_log,
+)
+import logging
+
+# Configure basic logging to ensure retry messages are visible
+logging.basicConfig(
+    level=logging.WARNING, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
 OPENAI_API_KEY_NAME = "OPENAI_API_KEY_ECON_EVALS"
 OPENAI_O1_API_KEY_NAME = OPENAI_API_KEY_NAME
 ANTHROPIC_API_KEY_NAME = "ANTHROPIC_API_KEY_ECON_EVALS"
 GOOGLE_API_KEY_NAME = "GOOGLE_API_KEY_ECON_EVALS"
+XAI_API_KEY_NAME = "XAI_API_KEY_ECON_EVALS"
+
 
 MAX_RETRY_ATTEMPTS = 20  # Set this to 10 or 20 for large experiments
 ANTHROPIC_MODELS = [
@@ -43,6 +54,13 @@ OPENAI_O1_MODELS = [
 
 OPENAI_MODELS = OPENAI_GPT_MODELS + OPENAI_O1_MODELS
 
+# XAI Reasoning Models
+XAI_NON_REASONING_MODELS = []
+XAI_REASONING_MODELS = [
+    "grok-4-0709",
+]
+XAI_MODELS = XAI_REASONING_MODELS
+
 GOOGLE_REASONING_MODELS = [
     "gemini-2.5-pro-preview-06-05",
 ]
@@ -54,23 +72,25 @@ GOOGLE_NON_REASONING_MODELS = [
 
 GOOGLE_MODELS = GOOGLE_REASONING_MODELS + GOOGLE_NON_REASONING_MODELS
 
-ALL_MODELS = ANTHROPIC_MODELS + OPENAI_MODELS + GOOGLE_MODELS
-
-MAX_TOKENS = 4096
-MAX_REASONING_TOKENS = 100000
+ALL_MODELS = ANTHROPIC_MODELS + OPENAI_MODELS + GOOGLE_MODELS + XAI_MODELS
 
 
 def get_system_name(model: str) -> Literal["system", "developer", "user"]:
     """
-    Return the name this OpenAI model gives to the "system" role (system, developer)
+    Return the name this OpenAI or XAI model gives to the "system" role (system, developer)
     """
-    assert model in OPENAI_MODELS
+    assert model in OPENAI_MODELS or model in XAI_MODELS
     if model in OPENAI_GPT_MODELS:
         return "system"
     elif model in OPENAI_O1_MODELS:
         return "developer"
+    elif model in XAI_MODELS:
+        return "system"
     else:
         raise NotImplementedError
+
+
+MAX_ANTHROPIC_TOKENS = 8192  # Anthropic still makes you specify this
 
 
 @lru_cache()
@@ -83,6 +103,12 @@ def _get_openai_client(model: str):
             OPENAI_O1_API_KEY_NAME in os.environ
         ), f"Must set {OPENAI_O1_API_KEY_NAME}"
         return openai.OpenAI(api_key=os.getenv(OPENAI_O1_API_KEY_NAME))
+    elif model in XAI_MODELS:
+        # XAI models use OpenAI-compatible API but with a different base_url and API key
+        assert XAI_API_KEY_NAME in os.environ, f"Must set {XAI_API_KEY_NAME}"
+        return openai.OpenAI(
+            api_key=os.getenv(XAI_API_KEY_NAME), base_url="https://api.x.ai/v1"
+        )
     else:
         raise NotImplementedError
 
@@ -464,7 +490,8 @@ def cache_anthropic_messages(messages: list[dict[str, str]]):
 
 @retry(
     stop=stop_after_attempt(MAX_RETRY_ATTEMPTS),
-    wait=wait_random_exponential(),
+    wait=wait_random_exponential(max=60),
+    before_sleep=before_sleep_log(logging.getLogger(__name__), logging.WARNING),
 )
 def call_openai(
     *,
@@ -472,32 +499,23 @@ def call_openai(
     messages: dict[str, str],
     system: str = "",
     temperature: float = 0,
-    max_tokens: int = MAX_TOKENS,
-    max_completion_tokens: int = MAX_REASONING_TOKENS,
     tools: list[dict[str, Any]] = None,
     tool_choice: dict | None = None,
 ) -> tuple[dict[str, Any], str, dict[str, Any]]:
-    assert model in OPENAI_MODELS
+    assert model in OPENAI_MODELS or model in XAI_MODELS
     openai_client = _get_openai_client(model)
     assert (tools and tool_choice) or (not tools and not tool_choice)
     tool_args = {"tools": tools} if tools else {}
     tool_choice_args = {"tool_choice": tool_choice} if tool_choice else {}
     temperature_args = (
-        {"temperature": temperature} if model in OPENAI_GPT_MODELS else {}
+        {"temperature": temperature} if model in OPENAI_GPT_MODELS + XAI_MODELS else {}
     )
-    max_tokens_args = (
-        {"max_tokens": max_tokens}
-        if model in OPENAI_GPT_MODELS
-        else {
-            "max_completion_tokens": max_completion_tokens
-        }  # recommend a lot, like at least 10,000
-    )
+
     messages = [{"role": get_system_name(model), "content": system}, *messages]
     completion = openai_client.chat.completions.create(
         model=model,
         messages=messages,
         **temperature_args,
-        **max_tokens_args,
         **tool_args,
         **tool_choice_args,
     ).to_dict()
@@ -524,7 +542,6 @@ def call_openai(
         "tool_choice": tool_choice,
         "messages": messages,
         "temperature": temperature,
-        "max_tokens": max_tokens,
         "response": response,
         "completion": completion,
     }
@@ -544,7 +561,6 @@ def call_anthropic(
     messages: dict[str, str],
     system: str = "",
     temperature: float = 0,
-    max_tokens: int = MAX_TOKENS,
     tools: list[dict[str, Any]] = None,
     tool_choice: dict | None = None,
 ) -> tuple[dict[str, Any], str, dict[str, Any]]:
@@ -560,13 +576,13 @@ def call_anthropic(
     # print(messages)
 
     completion = anthropic_client.messages.create(
+        max_tokens=MAX_ANTHROPIC_TOKENS,
         model=model,
         **system_prompt_args,
         **tool_args,
         **tool_choice_args,
         messages=messages,
         temperature=temperature,
-        max_tokens=max_tokens,
     ).to_dict()
 
     assert "content" in completion
@@ -588,7 +604,6 @@ def call_anthropic(
         "tool_choice": tool_choice,
         "messages": messages,
         "temperature": temperature,
-        "max_tokens": max_tokens,
         "response": response,
         "completion": completion,
     }
@@ -608,7 +623,6 @@ def call_google(
     model: str,
     system: str = "",
     temperature: float = 0,
-    max_tokens: int = MAX_TOKENS,
     tools: list[dict[str, Any]] = None,
     tool_choice: dict | None = None,
 ) -> tuple[dict[str, Any], str, dict[str, Any]]:
@@ -618,9 +632,7 @@ def call_google(
     ), "If tool_choice is specified, must also provide tools"
     tool_args = {"tools": tools} if tools else {}
     tool_choice_args = {"tool_config": tool_choice} if tool_choice else {}
-    max_output_tokens = (
-        max_tokens if model in GOOGLE_NON_REASONING_MODELS else MAX_REASONING_TOKENS
-    )
+
     google_model = _get_google_client(
         model_name=model,
         system=system,
@@ -631,7 +643,7 @@ def call_google(
         **tool_choice_args,
         generation_config={
             "temperature": temperature,
-            "max_output_tokens": max_output_tokens,
+            # "max_output_tokens": max_output_tokens,
         },
     ).to_dict()
     assert "candidates" in completion
@@ -659,7 +671,6 @@ def call_google(
         "tool_choice": tool_choice,
         "messages": messages,
         "temperature": temperature,
-        "max_tokens": max_output_tokens,
         "response": response,
         "completion": completion,
     }
@@ -673,7 +684,6 @@ def call_llm(
     messages: dict[str, str],
     system: str = "",
     temperature: float = 0,
-    max_tokens: int = MAX_TOKENS,
     tools: list[dict[str, Any]] = None,
     tool_choice: dict | None = None,
     caching: bool = True,
@@ -684,7 +694,6 @@ def call_llm(
     - messages (dict[str, str]): messages, following Anthropic conventions (no system prompt)
     - system (str): system prompt
     - temperature (float): temperature
-    - max_tokens (int): maximum number of tokens
     - tools (list[dict[str, Any]]): tools, following Anthropic API conventions
     - tool_choice (dict | None): tool choice, following Anthropic API conventions. Main options are tool_choice = {"type": "any"} or tool_choice = {"type": "auto"} or tool_choice = {"type": "tool", "name": "tool_name"}
 
@@ -693,7 +702,12 @@ def call_llm(
     - response (str)
     - completion (dict[str, Any]) -- Anthropic style completion object (if model was OpenAI, it was manually converted, and maybe some fields are missing). If you want the full thing, it's logged in log.
     """
-    if model in OPENAI_MODELS:
+
+    request_timestamp = datetime.fromtimestamp(time.time()).strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
+    log = response = completion = None
+    if model in OPENAI_MODELS or model in XAI_MODELS:
         converted_tools = convert_anthropic_tools_to_openai_tools(tools)
         converted_tool_choice = convert_anthropic_tool_choice_to_openai_tool_choice(
             tool_choice
@@ -705,70 +719,61 @@ def call_llm(
                 messages=converted_messages,
                 system=system,
                 temperature=temperature,
-                max_tokens=max_tokens,
                 tools=converted_tools,
                 tool_choice=converted_tool_choice,
             )
+            completion = convert_openai_completion_to_anthropic_completion(completion)
         except openai.BadRequestError as e:
             raise e
-        return (
-            log,
-            response,
-            convert_openai_completion_to_anthropic_completion(completion),
-        )
-
     elif model in GOOGLE_MODELS:
         converted_tools = convert_anthropic_tools_to_google_tools(tools)
         converted_tool_choice = convert_anthropic_tool_choice_to_google_tool_choice(
             tool_choice
         )
         converted_messages = convert_anthropic_messages_to_google_messages(messages)
-
         try:
             log, response, completion = call_google(
                 model=model,
                 messages=converted_messages,
                 system=system,
                 temperature=temperature,
-                max_tokens=max_tokens,
                 tools=converted_tools,
                 tool_choice=converted_tool_choice,
             )
-
-        except genai.types.BrokenResponseError as e:
-            raise e
-
-        return (
-            log,
-            response,
-            convert_google_completion_to_anthropic_completion(
+            completion = convert_google_completion_to_anthropic_completion(
                 google_completion=completion,
                 model=model,
-            ),
-        )
-
+            )
+        except genai.types.BrokenResponseError as e:
+            raise e
     elif model in ANTHROPIC_MODELS:
         if not caching:
             print("Warning: Caching is not enabled for Anthropic")
-            return call_anthropic(
+            log, response, completion = call_anthropic(
                 model=model,
                 messages=messages,
                 system=system,
                 temperature=temperature,
-                max_tokens=max_tokens,
                 tools=tools,
                 tool_choice=tool_choice,
             )
-        return call_anthropic(
-            model=model,
-            messages=cache_anthropic_messages(messages),
-            system=cache_anthropic_system(system),
-            temperature=temperature,
-            max_tokens=max_tokens,
-            tools=cache_anthropic_tools(tools),
-            tool_choice=tool_choice,
-        )
+        else:
+            log, response, completion = call_anthropic(
+                model=model,
+                messages=cache_anthropic_messages(messages),
+                system=cache_anthropic_system(system),
+                temperature=temperature,
+                tools=cache_anthropic_tools(tools),
+                tool_choice=tool_choice,
+            )
     else:
         raise NotImplementedError(
             f"Model {model} not supported (needs to be added to OPENAI_MODELS or ANTHROPIC_MODELS list)"
         )
+    response_timestamp = datetime.fromtimestamp(time.time()).strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
+    if log is not None:
+        log["request_timestamp"] = request_timestamp
+        log["response_timestamp"] = response_timestamp
+    return log, response, completion
