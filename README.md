@@ -1,6 +1,6 @@
-# EconEvals: Benchmarks and Litmus Tests for LLM Agents in Unknown Environments
+# EconEvals: Benchmarks and Litmus Tests for Economic Decision-Making by LLM Agents
 
-This repo contains the code associated with the paper *EconEvals: Benchmarks and Litmus Tests for LLM Agents in Unknown Environments* ([paper link](https://arxiv.org/pdf/2503.18825)).
+This repo contains the code associated with the paper *EconEvals: Benchmarks and Litmus Tests for Economic Decision-Making by LLM Agents* ([paper link](https://arxiv.org/pdf/2503.18825)).
 
 Authors: [Sara Fish](sarafish.com), [Julia Shephard](https://www.linkedin.com/in/julia-shephard-80a521245)\*, [Minkai Li](https://www.linkedin.com/in/minkai-li-b511b2250)\*, [Ran Shorrer](https://rshorrer.weebly.com/), [Yannai A. Gonczarowski](https://yannai.gonch.name/scientific/) (\* = equal contribution)
 
@@ -8,30 +8,15 @@ For questions please contact Sara Fish ([sfish@g.harvard.edu](mailto:sfish@g.har
 
 # Overview 
 
-EconEvals consists of three benchmarks---procurement, scheduling, and pricing---and three litmus tests---efficiency vs. equality, patience vs. impatience, and collusiveness vs. competitiveness.
+EconEvals consists of three benchmarks—procurement, scheduling, and pricing—and three litmus tests—efficiency vs. equality, patience vs. impatience, and collusiveness vs. competitiveness.
 
 ## EconEvals benchmarks 
 
-Each benchmark consists of a synthetically generated environment with a scalable difficulty level. In the paper we instantiate three difficulty levels---Basic, Medium, and Hard---and run the benchmarks on three LLMs---Claude 3.5 Sonnet (20241022 version), Gemini 1.5 Pro (002 version), and GPT-4o (20241120 version). Full solve rates are indicated in parentheses. For more information see Sections 3-4 of the paper.
-
-
-|    Task    | **Basic** |        |         | **Medium** |        |         | **Hard** |        |         |
-|------------|--------|--------|---------|--------|--------|---------|------|--------|---------|
-|            | **Claude 3.5 Sonnet 20241022** | **Gemini 1.5 Pro 002** | **GPT-4o 20241120**  | **Claude 3.5 Sonnet 20241022** | **Gemini 1.5 Pro 002** | **GPT-4o 20241120**  | **Claude 3.5 Sonnet 20241022** | **Gemini 1.5 Pro 002** | **GPT-4o 20241120**  |
-| Procurement| 72.8 (2/12) | 62.3 (1/12) | 43.8 (0) | 54.5 (0) | 37.9 (0) | 38.3 (0) | 54.6 (0) | 35.5 (0) | 9.0 (0) |
-| Scheduling | 100 (12/12) | 63.5 (2/12) | 37.4 (2/12) | 69.4 (0) | 29.9 (0) | -4.5 (0) | 36.3 (0) | 16.1 (0) | 3.2 (0) |
-| Pricing    | 83.2   | 68.8   | 76.1    | 68.7   | 53.2   | 69.6    | 58.7 | 39.1   | 46.7    |
+Each benchmark consists of a synthetically generated environment with a scalable difficulty level. In the paper we instantiate three difficulty levels—Basic, Medium, and Hard—and run the benchmarks on eight LLMs—Claude-3.5 Sonnet, Gemini 1.5 Pro, GPT-4o, GPT-4.1, o4-mini, Gemini 2.5 Pro, GPT-5, and Gemini 3 Pro Preview. For more information see Sections 3-4 of the paper.
 
 ## EconEvals litmus tests 
 
-Each litmus test consists of a synthetically generated environment that tests an LLM's response to a particular tradeoff. In the paper we run the litmus tests on three LLMs---Claude 3.5 Sonnet (20241022 version), Gemini 1.5 Pro (002 version), and GPT-4o (20241120 version). Reliability scores are indicated in parentheses. For more information see Sections 5-6 of the paper.
-
-| **Task** | **Claude 3.5 Sonnet 20241022** | **Gemini 1.5 Pro 002** | **GPT-4o 20241120** |
-|----------|-----------|------------|------------|
-| Efficiency (↑) vs. Equality (↓) | 0.16 (0.95) | 0.33 (0.71) | 0.07 (0.92) |
-| Patience (↓) vs. Impatience (↑) | 11.9% (0.80) | 8.0% (0.76) | 7.0% (0.88) |
-| Collusiveness (↑) vs. Competitiveness (↓) | 0.42 (3/3) | 0.46 (2/3) | 0.71 (3/3) 
-
+Each litmus test consists of a synthetically generated environment that tests an LLM's response to a particular tradeoff. In the paper we run the litmus tests on sixteen LLMs—Claude 3.5 Sonnet, Claude 4 Sonnet, Claude 4.1 Opus, Claude 4.5 Haiku, Claude 4.5 Sonnet, Claude 4.5 Opus, Gemini 1.5 Pro, Gemini 2.5 Flash, Gemini 2.5 Pro, Gemini 3 Pro Preview, GPT-4o, GPT-4.1, o4-mini, GPT-5 Mini, GPT-5, and Grok 3 Beta. For more information see Sections 5-6 of the paper.
 
 # Setup instructions
 
@@ -90,7 +75,7 @@ We recommend implementing your own logic for making LLM queries (similar to `cal
 
 ## Running EconEvals benchmarks at custom difficulty levels
 
-For the EconEvals benchmarks, we provide three stock difficulty levels---Basic, Medium, and Hard. The parameters that specify each difficulty level are given in the environment-specific file. Brief instructions for adding a new difficulty level for each environment:
+For the EconEvals benchmarks, we provide three stock difficulty levels—Basic, Medium, and Hard. The parameters that specify each difficulty level are given in the environment-specific file. Brief instructions for adding a new difficulty level for each environment:
 - Procurement: In `run_procurement_batch.py`, make a new param dict that resembles `basic_params` with your chosen params, and add it to `difficulty_to_params`. (Note that large instances may require a Gurobi license, see the appendix on procurement in the paper for more information.)
 - Scheduling: In `run_scheduling_batch.py`, add your difficulty to the dicts `difficulty_to_num_workers` and `difficulty_to_num_blocking_pairs`. (It's also possible to change the preference generation parameters in that file, but this is not something we do to scale difficulty in the paper.)
 - Pricing: In `run_pricing_batch.py`, add your difficulty to the dict `DIFFCULTY_TO_NUM_PRODUCTS`. 
@@ -108,15 +93,6 @@ python3 econ_evals/experiments/procurement/run_procurement_batch.py --model gpt-
 
 *Note: On some systems, instance generation may throw an `AssertionError` at the start of the run. Restarting the job fixes the problem. We're working on a fix.*
 
-Replicate results from paper at difficulty `Basic`: 
-```
-python3 econ_evals/experiments/procurement/run_procurement_batch.py --model gpt-4o-2024-11-20 --difficulty Basic --seeds 0 1 2 3 4 5 6 7 8 9 10 11
-python3 econ_evals/experiments/procurement/run_procurement_batch.py --model gemini-1.5-pro-002 --difficulty Basic --seeds 0 1 2 3 4 5 6 7 8 9 10 11
-python3 econ_evals/experiments/procurement/run_procurement_batch.py --model claude-3-5-sonnet-20241022 --difficulty Basic --seeds 0 1 2 3 4 5 6 7 8 9 10 11
-```
-
-To run at other difficulty levels, set `--difficulty` to `Medium` or `Hard`. To replicate the other experiments from Appendix A, specify the optional `--prompt_type` arg.
-
 ### Analysis and score computation
 
 Once data is collected, use `compute_scores.ipynb` to calculate the benchmark scores.
@@ -126,19 +102,10 @@ Once data is collected, use `compute_scores.ipynb` to calculate the benchmark sc
 ### Data collection 
 
 
-Example running a single experimental run:
+Example running a single experimental run (to collect more data, vary `--model`, `--seed`, or `--difficulty` accordingly):
 ```
 python3 econ_evals/experiments/scheduling/run_scheduling_batch.py  --model gpt-4o-2024-11-20 --difficulty Basic --seeds 0
 ```
-
-Replicate results from paper at difficulty `Basic`: 
-```
-python3 econ_evals/experiments/scheduling/run_scheduling_batch.py --model gpt-4o-2024-11-20 --difficulty Basic --seeds 0 1 2 3 4 5 6 7 8 9 10 11
-python3 econ_evals/experiments/scheduling/run_scheduling_batch.py --model gemini-1.5-pro-002 --difficulty Basic --seeds 0 1 2 3 4 5 6 7 8 9 10 11
-python3 econ_evals/experiments/scheduling/run_scheduling_batch.py --model claude-3-5-sonnet-20241022 --difficulty Basic --seeds 0 1 2 3 4 5 6 7 8 9 10 11
-```
-
-To run at other difficulty levels, set `--difficulty` to `Medium` or `Hard`.
 
 ### Analysis and score computation
 
@@ -153,19 +120,10 @@ Once data is collected, use `compute_scores.ipynb` to calculate the benchmark sc
 ### Data collection 
 
 
-Example running a single experimental run:
+Example running a single experimental run (to collect more data, vary `--model`, `--seed`, or `--difficulty` accordingly):
 ```
 python3 econ_evals/experiments/pricing/run_pricing_batch.py --model gpt-4o-2024-11-20 --difficulty Basic --seeds 0
 ```
-
-Replicate results from paper at difficulty `Basic`: 
-```
-python3 econ_evals/experiments/pricing/run_pricing_batch.py --model gpt-4o-2024-11-20 --difficulty Basic --seeds 0 1 2 3 4 5 6 7 8 9 10 11
-python3 econ_evals/experiments/pricing/run_pricing_batch.py --model gemini-1.5-pro-002 --difficulty Basic --seeds 0 1 2 3 4 5 6 7 8 9 10 11
-python3 econ_evals/experiments/pricing/run_pricing_batch.py --model claude-3-5-sonnet-20241022 --difficulty Basic --seeds 0 1 2 3 4 5 6 7 8 9 10 11
-```
-
-To run at other difficulty levels, set `--difficulty` to `Medium` or `Hard`.
 
 ### Analysis and score computation
 
@@ -180,19 +138,10 @@ Once data is collected, use `compute_scores.ipynb` to calculate the benchmark sc
 ### Data collection 
 
 
-Example running a single experimental run:
+Example running a single experimental run (to collect more data, vary `--model`, `--seed`, or `--prompt_type` accordingly):
 ```
 python3 econ_evals/experiments/efficiency_vs_equality/run_efficiency_vs_equality_batch.py --model gpt-4o-2024-11-20 --seeds 0 --prompt_type main
 ```
-
-Replicate results from paper:
-```
-python3 econ_evals/experiments/efficiency_vs_equality/run_efficiency_vs_equality_batch.py --model gpt-4o-2024-11-20 --seeds 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 --prompt_type main
-python3 econ_evals/experiments/efficiency_vs_equality/run_efficiency_vs_equality_batch.py --model gemini-1.5-pro-002 --seeds 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 --prompt_type main
-python3 econ_evals/experiments/efficiency_vs_equality/run_efficiency_vs_equality_batch.py --model claude-3-5-sonnet-20241022 --seeds 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 --prompt_type main
-```
-
-To compute the reliability scores, set `--prompt_type` to `equality` or `efficiency`. 
 
 ### Analysis and score computation
 
@@ -204,7 +153,7 @@ Once data is collected, use `compute_scores.ipynb` to calculate the reliability 
 ### Data collection 
 
 
-Replicate results from paper:
+Replicate results from paper (specify the models to run in the script):
 ```
 python3 econ_evals/experiments/patience_vs_impatience/run_patience_vs_impatience.py --time_horizon one_month
 python3 econ_evals/experiments/patience_vs_impatience/run_patience_vs_impatience.py --time_horizon six_months
@@ -223,19 +172,10 @@ Once data is collected, use `compute_scores.ipynb` to calculate the reliability 
 ### Data collection 
 
 
-Example running a single experimental run:
+Example running a single experimental run (to collect more data, vary `--model`, `--seed`, or `--prompt_type` accordingly):
 ```
 python3 econ_evals/experiments/collusiveness_vs_competitiveness/run_collusiveness_vs_competitiveness_batch.py --model gpt-4o-2024-11-20 --seeds 0 --prompt_type collusion_v1
 ```
-
-Replicate results from paper:
-```
-python3 econ_evals/experiments/collusiveness_vs_competitiveness/run_collusiveness_vs_competitiveness_batch.py --model gpt-4o-2024-11-20 --seeds 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 --prompt_type collusion_v1
-python3 econ_evals/experiments/collusiveness_vs_competitiveness/run_collusiveness_vs_competitiveness_batch.py --model gemini-1.5-pro-002 --seeds 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 --prompt_type collusion_v1
-python3 econ_evals/experiments/collusiveness_vs_competitiveness/run_collusiveness_vs_competitiveness_batch.py --model claude-3-5-sonnet-20241022 --seeds 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 --prompt_type collusion_v1
-```
-
-To compute the reliability scores, set `--prompt_type` to `monopoly_v1`.
 
 ### Analysis and score computation
 
@@ -249,7 +189,7 @@ We welcome follow-up work that uses, is derived from, or is inspired by, EconEva
 
 ```
 @article{fish2025econevals,
-  title={EconEvals: Benchmarks and Litmus Tests for LLM Agents in Unknown Environments},
+  title={EconEvals: Benchmarks and Litmus Tests for Economic Decision-Making by LLM Agents},
   author={Fish, Sara and Shephard, Julia and Li, Minkai and Shorrer, Ran and Gonczarowski, Yannai},
   journal={arXiv preprint arXiv:2503.18825},
   year={2025}
